@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/Bet-You-Want.git/static/css/main.66d4699a.css",
-    "main.js": "/Bet-You-Want.git/static/js/main.d1483b03.js",
+    "main.css": "/Bet-You-Want.git/static/css/main.d2ba6a57.css",
+    "main.js": "/Bet-You-Want.git/static/js/main.1b230dff.js",
     "static/js/453.4d866526.chunk.js": "/Bet-You-Want.git/static/js/453.4d866526.chunk.js",
     "index.html": "/Bet-You-Want.git/index.html",
-    "main.66d4699a.css.map": "/Bet-You-Want.git/static/css/main.66d4699a.css.map",
-    "main.d1483b03.js.map": "/Bet-You-Want.git/static/js/main.d1483b03.js.map",
+    "main.d2ba6a57.css.map": "/Bet-You-Want.git/static/css/main.d2ba6a57.css.map",
+    "main.1b230dff.js.map": "/Bet-You-Want.git/static/js/main.1b230dff.js.map",
     "453.4d866526.chunk.js.map": "/Bet-You-Want.git/static/js/453.4d866526.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.66d4699a.css",
-    "static/js/main.d1483b03.js"
+    "static/css/main.d2ba6a57.css",
+    "static/js/main.1b230dff.js"
   ]
 }
