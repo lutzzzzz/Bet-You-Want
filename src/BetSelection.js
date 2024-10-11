@@ -10,28 +10,24 @@ const BetOption = ({ title, description, onSelect }) => {
   );
 };
 
-const BetSelection = () => {
-  const handleSelect = (betType) => {
-    console.log(`Selected: ${betType}`);
-  };
-
+const BetSelection = ({ onSelectDiceRoll, odds, houseBalance }) => {
   return (
     <div className="bet-selection">
       <h1>Select Your Bet Type</h1>
       <BetOption 
         title="Dice Roll"
-        description="Bet based on a simple randomized outcome"
-        onSelect={() => handleSelect('Dice Roll')}
+        description={`Bet based on a simple randomized outcome. Current Odds: ${odds.toFixed(2)}x. House Balance: ${houseBalance} ETH.`}
+        onSelect={onSelectDiceRoll}
       />
       <BetOption 
         title="Sports Match"
         description="Bet on an external event with a fixed outcome"
-        onSelect={() => handleSelect('Sports Match')}
+        onSelect={() => console.log('Selected: Sports Match')}
       />
       <BetOption 
         title="Unregulated Bet"
         description="Bet on anything you want, unregulated"
-        onSelect={() => handleSelect('Unregulated Bet')}
+        onSelect={() => console.log('Selected: Unregulated Bet')}
       />
     </div>
   );
