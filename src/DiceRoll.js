@@ -1,54 +1,47 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import Web3 from 'web3';
 
-function DiceRoll({ goBack, account, web3, odds, houseBalance, setHouseBalance }) {
-  const [result, setResult] = useState(null);
+function DiceRoll({ goBack, account, web3, contract, odds, houseBalance, setHouseBalance, setTransactions }) {
   const [betAmount, setBetAmount] = useState('');
+  const [guess, setGuess] = useState(1);
   const [isBetting, setIsBetting] = useState(false);
-  const [gasEstimate, setGasEstimate] = useState('');
+  const [betResult, setBetResult] = useState(null);
 
-  useEffect(() => {
-    if (web3 && betAmount) {
-      const estimateGas = async () => {
-        try {
-          const gas = await web3.eth.estimateGas({
-            from: account,
-            value: web3.utils.toWei(betAmount, 'ether')
-          });
-          setGasEstimate(web3.utils.fromWei(gas.toString(), 'ether'));
-        } catch (error) {
-          console.error('Error estimating gas', error);
-        }
-      };
-      estimateGas();
-    }
-  }, [web3, betAmount, account]);
-
-  const rollDice = async () => {
-    if (!betAmount || parseFloat(betAmount) <= 0) {
-      alert('Please enter a valid bet amount.');
+  const placeBet = async () => {
+    if (!betAmount || guess < 1 || guess > 6) {
+      alert("Please enter a valid bet amount and guess between 1 and 6.");
       return;
     }
 
     setIsBetting(true);
 
     try {
-      const diceResult = Math.floor(Math.random() * 6) + 1;
-      const isBig = diceResult > 3;
-      const playerWins = isBig;
-
-      // 如果玩家赢了
-      if (playerWins) {
-        const payout = parseFloat(betAmount) * odds;
-        setHouseBalance(houseBalance - payout);
-        alert(`You won! Dice rolled ${diceResult}. Your payout is ${payout} ETH.`);
-      } else {
-        setHouseBalance(houseBalance + parseFloat(betAmount));
-        alert(`You lost! Dice rolled ${diceResult}. Better luck next time.`);
-      }
-
-      setResult(diceResult);
+      const betValue = Web3.utils.toWei(betAmount, 'ether');
+      await contract.methods.placeBet(guess).send({ from: account, value: betValue });
+      alert("Bet placed successfully!");
     } catch (error) {
-      console.error('Error while rolling the dice:', error);
+      console.error("Error placing bet", error);
+      alert("Failed to place bet. Please try again.");
+    } finally {
+      setIsBetting(false);
+    }
+  };
+
+  const rollDice = async () => {
+    setIsBetting(true);
+
+    try {
+      await contract.methods.rollDice().send({ from: account });
+      alert("Dice rolled successfully! Check MetaMask for transaction details.");
+      setBetResult("Bet settled! Check the result on your MetaMask transactions.");
+
+      // 更新庄家的余额（这里简单地增加/减少资金池，可以根据你的业务逻辑调整）
+      const winnings = parseFloat(betAmount) * odds;
+      setHouseBalance(houseBalance - winnings);
+      setTransactions((prev) => [...prev, { date: new Date().toLocaleString(), game: 'Dice Roll', amount: betAmount, result: winnings > 0 ? 'Win' : 'Lose' }]);
+    } catch (error) {
+      console.error("Error rolling dice", error);
+      alert("Failed to roll dice. Please try again.");
     } finally {
       setIsBetting(false);
     }
@@ -61,14 +54,24 @@ function DiceRoll({ goBack, account, web3, odds, houseBalance, setHouseBalance }
       <p>Current Odds: {odds.toFixed(2)}x</p>
       <input
         type="number"
+        min="0.01"
+        step="0.01"
         value={betAmount}
         onChange={(e) => setBetAmount(e.target.value)}
-        placeholder="Enter bet amount (ETH)"
+        placeholder="Bet Amount (ETH)"
       />
-      <p>Estimated Gas Fee: {gasEstimate} ETH</p>
-      <button onClick={rollDice} disabled={isBetting}>Roll the Dice</button>
+      <input
+        type="number"
+        min="1"
+        max="6"
+        value={guess}
+        onChange={(e) => setGuess(Number(e.target.value))}
+        placeholder="Your Guess (1-6)"
+      />
+      <button onClick={placeBet} disabled={isBetting}>Place Bet</button>
+      <button onClick={rollDice} disabled={isBetting}>Roll Dice</button>
       {isBetting && <p>Betting in progress... Please wait.</p>}
-      {result !== null && <p>You rolled a {result}!</p>}
+      {betResult && <p>{betResult}</p>}
       <button onClick={goBack}>Back to Main Page</button>
     </div>
   );
