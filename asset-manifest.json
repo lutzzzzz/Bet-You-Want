@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/Bet-You-Want/static/css/main.e895e9af.css",
-    "main.js": "/Bet-You-Want/static/js/main.23e2df2c.js",
+    "main.css": "/Bet-You-Want/static/css/main.1cf8db93.css",
+    "main.js": "/Bet-You-Want/static/js/main.c724b138.js",
     "static/js/453.4d866526.chunk.js": "/Bet-You-Want/static/js/453.4d866526.chunk.js",
     "index.html": "/Bet-You-Want/index.html",
-    "main.e895e9af.css.map": "/Bet-You-Want/static/css/main.e895e9af.css.map",
-    "main.23e2df2c.js.map": "/Bet-You-Want/static/js/main.23e2df2c.js.map",
+    "main.1cf8db93.css.map": "/Bet-You-Want/static/css/main.1cf8db93.css.map",
+    "main.c724b138.js.map": "/Bet-You-Want/static/js/main.c724b138.js.map",
     "453.4d866526.chunk.js.map": "/Bet-You-Want/static/js/453.4d866526.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.e895e9af.css",
-    "static/js/main.23e2df2c.js"
+    "static/css/main.1cf8db93.css",
+    "static/js/main.c724b138.js"
   ]
 }
