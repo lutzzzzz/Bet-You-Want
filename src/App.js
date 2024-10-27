@@ -1,42 +1,50 @@
 import React, { useEffect, useState } from 'react';
-import BetSelection from './BetSelection';
-import TransactionHistory from './TransactionHistory';
 import DiceRoll from './DiceRoll';
+import RockPaperScissors from './RockPaperScissors';
+import BettingPlatform from './BettingPlatform';
 import ErrorBoundary from './ErrorBoundary';
 import Web3 from 'web3';
 import DiceBettingGameABI from './DiceBettingGameABI';
+import RockPaperScissorsABI from './RockPaperScissorsABI';
+import BettingPlatformABI from './BettingPlatformABI';
 import './App.css';
 
 function App() {
   const [view, setView] = useState('home');
-  const [transactions, setTransactions] = useState([]);
   const [account, setAccount] = useState(null);
   const [web3, setWeb3] = useState(null);
+  const [diceContract, setDiceContract] = useState(null);
+  const [rockPaperScissorsContract, setRockPaperScissorsContract] = useState(null);
+  const [bettingPlatformContract, setBettingPlatformContract] = useState(null);
   const [houseBalance, setHouseBalance] = useState(0);
-  const [odds, setOdds] = useState(1.9);
-  const [contract, setContract] = useState(null);
-  const contractAddress = '0x97A425616BBA077548868F99A3546F7Ea90c78A0';
+  const [transactions, setTransactions] = useState([]);
+
+  const diceBettingContractAddress = '0xb9fca8ebf24571feffd031f26faf554e2377eb53';
+  const rockPaperScissorsContractAddress = '0xd4bc5b60ece41848dd804df124bc0e3c04e919e4';
+  const bettingPlatformContractAddress = '0x9ce3828d7827bfd28449ac7b72932b252a7f45ef'; 
 
   useEffect(() => {
-    const loadWeb3 = async () => {
+    const loadWeb3AndContracts = async () => {
       if (window.ethereum) {
         try {
-          console.log("Requesting MetaMask connection...");
           await window.ethereum.request({ method: 'eth_requestAccounts' });
-          console.log("MetaMask connected successfully.");
-          
           const web3Instance = new Web3(window.ethereum);
           setWeb3(web3Instance);
-          
+
           const accounts = await web3Instance.eth.getAccounts();
           setAccount(accounts[0]);
-          console.log("Account connected:", accounts[0]);
-    
-          if (contractAddress) {
-            const diceBettingGame = new web3Instance.eth.Contract(DiceBettingGameABI, contractAddress);
-            setContract(diceBettingGame);
-            getHouseBalance(web3Instance, contractAddress); // 获取合约余额
-          }
+
+          const diceBettingGame = new web3Instance.eth.Contract(DiceBettingGameABI, diceBettingContractAddress);
+          setDiceContract(diceBettingGame);
+
+          const rockPaperScissorsGame = new web3Instance.eth.Contract(RockPaperScissorsABI, rockPaperScissorsContractAddress);
+          setRockPaperScissorsContract(rockPaperScissorsGame);
+
+          const bettingPlatformGame = new web3Instance.eth.Contract(BettingPlatformABI, bettingPlatformContractAddress);
+          setBettingPlatformContract(bettingPlatformGame);
+
+          const balance = await web3Instance.eth.getBalance(diceBettingGame.options.address);
+          setHouseBalance(web3Instance.utils.fromWei(balance, 'ether'));
         } catch (error) {
           console.error("Error connecting to MetaMask", error);
         }
@@ -44,75 +52,72 @@ function App() {
         alert("Please install MetaMask to use this application.");
       }
     };
-  
-    loadWeb3();  // 调用 loadWeb3 函数加载 web3 实例
-  
-    // 使用模拟数据来测试前端界面
-    const mockTransactions = [
-      {
-        date: '2024-10-10 14:00',
-        game: 'Dice Roll',
-        amount: '0.1',
-        result: 'Win',
-      },
-      {
-        date: '2024-10-09 16:30',
-        game: 'Sports Match',
-        amount: '0.5',
-        result: 'Lose',
-      },
-      {
-        date: '2024-10-08 11:15',
-        game: 'Unregulated Bet',
-        amount: '0.2',
-        result: 'Win',
-      },
-    ];
-    setTransactions(mockTransactions);
-  }, [contractAddress]);
-  
-  useEffect(() => {
-    // 计算赔率，基于庄家资金池动态调整
-    if (houseBalance > 0) {
-      const newOdds = 1.8 + (houseBalance / 10000);
-      setOdds(newOdds);
-    }
-  }, [houseBalance]);
 
-  const getHouseBalance = async (web3Instance, address) => {
-    if (address && web3Instance) {
-      try {
-        const balanceWei = await web3Instance.eth.getBalance(address);
-        const balanceEther = web3Instance.utils.fromWei(balanceWei, 'ether');
-        setHouseBalance(balanceEther);
-        console.log("House balance fetched successfully:", balanceEther);
-      } catch (error) {
-        console.error("Error fetching house balance:", error);
-      }
-    }
-  };
+    loadWeb3AndContracts();
+  }, []);
 
   const renderView = () => {
     switch (view) {
       case 'diceRoll':
         return (
-          <DiceRoll 
-            goBack={() => setView('home')} 
-            account={account} 
-            web3={web3} 
-            contract={contract}
-            odds={odds} 
-            houseBalance={houseBalance} 
+          <DiceRoll
+            goBack={() => setView('home')}
+            account={account}
+            web3={web3}
+            contract={diceContract}
+            houseBalance={houseBalance}
             setHouseBalance={setHouseBalance}
             setTransactions={setTransactions}
+            transactions={transactions}
+          />
+        );
+      case 'rockPaperScissors':
+        return (
+          <RockPaperScissors
+            account={account}
+            web3={web3}
+            contract={rockPaperScissorsContract}
+            goBack={() => setView('home')}
+          />
+        );
+      case 'bettingPlatform':
+        return (
+          <BettingPlatform
+            account={account}
+            web3={web3}
+            contract={bettingPlatformContract}
+            goBack={() => setView('home')}
           />
         );
       case 'home':
       default:
         return (
           <div className="main-content">
-            <BetSelection onSelectDiceRoll={() => setView('diceRoll')} odds={odds} houseBalance={houseBalance} />
-            <TransactionHistory transactions={transactions} />
+            <ErrorBoundary>
+              <div className="game-card">
+                <h2>Rock-Paper-Scissors</h2>
+                <p>Play the classic game of Rock-Paper-Scissors with decentralized betting!</p>
+                <button className="game-button" onClick={() => setView('rockPaperScissors')}>
+                  Play Now
+                </button>
+              </div>
+
+              <div className="game-card">
+                <h2>Dice Betting Game</h2>
+                <p>Try your luck by rolling the dice and win big!</p>
+                <button className="game-button" onClick={() => setView('diceRoll')}>
+                  Roll the Dice
+                </button>
+              </div>
+
+              <div className="game-card">
+                <h2>Betting Platform with Arbitrator</h2>
+                <p>Join a decentralized betting platform with dispute resolution.</p>
+                <button className="game-button" onClick={() => setView('bettingPlatform')}>
+                  Join Platform
+                </button>
+              </div>
+            </ErrorBoundary>
           </div>
         );
     }
@@ -123,11 +128,8 @@ function App() {
       <header className="App-header">
         <h1>Welcome to the Betting Platform</h1>
         {account && <p>Connected account: {account}</p>}
-        <p>House Balance: {houseBalance} ETH</p> {/* 显示庄家余额 */}
       </header>
-      <main className="App-main">
-        <ErrorBoundary>{renderView()}</ErrorBoundary>
-      </main>
+      <main className="App-main">{renderView()}</main>
     </div>
   );
 }

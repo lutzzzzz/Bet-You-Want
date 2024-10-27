@@ -1,9 +1,10 @@
 {
   "name": "bet_you_want",
   "version": "0.1.0",
-  "homepage": "https://lutzzzzz.github.io/Bet-You-Want.git",
+  "homepage": "https://lutzzzzz.github.io/Bet-You-Want/",
   "private": true,
   "dependencies": {
+    "@babel/preset-env": "^7.26.0",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
@@ -13,7 +14,7 @@
     "react-router-dom": "^6.26.2",
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4",
-    "web3": "^4.13.0"
+    "web3": "^4.14.0"
   },
   "scripts": {
     "predeploy": "npm run build",
@@ -27,7 +28,19 @@
     "extends": [
       "react-app",
       "react-app/jest"
-    ]
+    ],
+    "parserOptions": {
+      "ecmaVersion": 2023,
+      "sourceType": "module",
+      "ecmaFeatures": {
+        "jsx": true
+      }
+    },
+    "env": {
+      "browser": true,
+      "node": true,
+      "es2023": true
+    }
   },
   "browserslist": {
     "production": [
@@ -42,6 +55,8 @@
     ]
   },
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "eslint": "^8.57.1",
     "gh-pages": "^6.1.1"
   }
 }

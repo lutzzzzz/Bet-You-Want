@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import Web3 from 'web3';
+import TransactionHistory from './TransactionHistory';
 
-function DiceRoll({ goBack, account, web3, contract, odds, houseBalance, setHouseBalance, setTransactions }) {
+function DiceRoll({ goBack, account, web3, contract, houseBalance, setHouseBalance, setTransactions, transactions = [] }) { // 设置默认值为[]
   const [betAmount, setBetAmount] = useState('');
   const [guess, setGuess] = useState(1);
   const [isBetting, setIsBetting] = useState(false);
@@ -16,8 +16,8 @@ function DiceRoll({ goBack, account, web3, contract, odds, houseBalance, setHous
     setIsBetting(true);
 
     try {
-      const betValue = Web3.utils.toWei(betAmount, 'ether');
-      await contract.methods.placeBet(guess).send({ from: account, value: betValue });
+      const betValue = web3.utils.toWei(betAmount, 'ether');
+      await contract.methods.placeBet(guess).send({ from: account, value: betValue, gas: 300000 });
       alert("Bet placed successfully!");
     } catch (error) {
       console.error("Error placing bet", error);
@@ -31,14 +31,36 @@ function DiceRoll({ goBack, account, web3, contract, odds, houseBalance, setHous
     setIsBetting(true);
 
     try {
-      await contract.methods.rollDice().send({ from: account });
-      alert("Dice rolled successfully! Check MetaMask for transaction details.");
-      setBetResult("Bet settled! Check the result on your MetaMask transactions.");
+      await contract.methods.rollDice().send({ from: account, gas: 300000 });
+      const events = await contract.getPastEvents('DiceRolled', {
+        filter: { player: account },
+        fromBlock: 0,
+        toBlock: 'latest'
+      });
+      if (events.length > 0) {
+        const latestEvent = events[events.length - 1];
+        const rolledNumber = latestEvent.returnValues.rolledNumber;
+        const won = latestEvent.returnValues.won;
+        const resultMessage = won ? "Congratulations! You won!" : "Sorry, you lost this time.";
+        setBetResult(`Rolled Number: ${rolledNumber}. ${resultMessage}`);
 
-      // 更新庄家的余额（这里简单地增加/减少资金池，可以根据你的业务逻辑调整）
-      const winnings = parseFloat(betAmount) * odds;
-      setHouseBalance(houseBalance - winnings);
-      setTransactions((prev) => [...prev, { date: new Date().toLocaleString(), game: 'Dice Roll', amount: betAmount, result: winnings > 0 ? 'Win' : 'Lose' }]);
+        // Update the house balance after the result
+        const balance = await web3.eth.getBalance(contract.options.address);
+        setHouseBalance(web3.utils.fromWei(balance, 'ether'));
+
+        // Update transactions
+        setTransactions((prev) => [
+          ...prev,
+          {
+            date: new Date().toLocaleString(),
+            game: 'Dice Roll',
+            amount: betAmount,
+            result: won ? 'Win' : 'Lose'
+          }
+        ]);
+      } else {
+        setBetResult("Unable to retrieve the rolled number. Please try again later.");
+      }
     } catch (error) {
       console.error("Error rolling dice", error);
       alert("Failed to roll dice. Please try again.");
@@ -51,7 +73,6 @@ function DiceRoll({ goBack, account, web3, contract, odds, houseBalance, setHous
     <div className="dice-roll">
       <h2>Dice Roll Game</h2>
       <p>House Balance: {houseBalance} ETH</p>
-      <p>Current Odds: {odds.toFixed(2)}x</p>
       <input
         type="number"
         min="0.01"
@@ -73,6 +94,11 @@ function DiceRoll({ goBack, account, web3, contract, odds, houseBalance, setHous
       {isBetting && <p>Betting in progress... Please wait.</p>}
       {betResult && <p>{betResult}</p>}
       <button onClick={goBack}>Back to Main Page</button>
+
+      {/* Display Transaction History specific to Dice Roll */}
+      {Array.isArray(transactions) && (
+        <TransactionHistory transactions={transactions.filter(transaction => transaction.game === 'Dice Roll')} />
+      )}
     </div>
   );
 }
