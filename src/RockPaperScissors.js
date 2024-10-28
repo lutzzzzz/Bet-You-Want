@@ -13,17 +13,18 @@ const RockPaperScissors = ({ account, web3, contract, goBack }) => {
       alert("Please enter a valid wager amount.");
       return;
     }
-
+  
     try {
-      const result = await contract.methods.createGame(account).send({
+      // 将 opponent 地址设置为 address(0)，允许任何人加入游戏
+      const result = await contract.methods.createGame('0x0000000000000000000000000000000000000000').send({
         from: account,
         value: web3.utils.toWei(wager, 'ether'),
         gas: 300000,
       });
-
+  
       const newGameId = result.events.GameCreated.returnValues.gameId;
       setGameId(newGameId.toString());
-
+  
       // 更新交易记录
       setTransactions((prev) => [
         ...prev,
@@ -39,6 +40,7 @@ const RockPaperScissors = ({ account, web3, contract, goBack }) => {
       console.error("Error creating game:", error);
     }
   };
+  
 
   const joinGame = async () => {
     const existingGameId = prompt("Enter the game ID to join:");
